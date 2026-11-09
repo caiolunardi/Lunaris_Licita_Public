@@ -1,0 +1,12 @@
+{
+  "name": "lunaris-licita-ddl-verificacao-local",
+  "main": "../web/src/index.js",
+  "compatibility_date": "2026-11-06",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lunaris-licita-ddl-local",
+      "database_id": "00000000-0000-4000-8000-000000000000"
+    }
+  ]
+}

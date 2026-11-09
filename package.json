@@ -1,0 +1,16 @@
+{
+  "name": "lunaris-licita",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "test:node": "node --test web/tests/*.test.mjs web/integration/*.test.mjs",
+    "build:visual": "npm --prefix web/ui run build",
+    "check:ui": "npm --prefix web/ui run check"
+  },
+  "devDependencies": {
+    "miniflare": "4.20260730.0",
+    "wrangler": "4.135.0"
+  }
+}

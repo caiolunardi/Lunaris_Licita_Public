@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars*
+*.tsbuildinfo
+
+playwright-report/
+test-results/

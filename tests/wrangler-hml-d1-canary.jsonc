@@ -1,0 +1,14 @@
+{
+  "name": "lunaris-licita-hml-d1-canary-offline",
+  "main": "../web/src/hml/d1-readonly-canary.mjs",
+  "compatibility_date": "2026-11-06",
+  "workers_dev": false,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "lunaris-licita-hml",
+      "database_id": "00000000-0000-4000-8000-000000000000"
+    }
+  ]
+}
