@@ -107,7 +107,7 @@ test("canario HML: configuracao offline nunca recebe ID D1 real nem altera produ
   assert.equal(canary.workers_dev, false);
   assert.equal(canary.preview_urls, false);
   assert.equal(canary.r2_buckets, undefined);
-  assert.equal(prod.name, "lunaris-licita");
+  assert.equal(prod.name, "lunaris-licita-lab");
   assert.equal(prod.main, "./web/ui/worker/index.mjs");
   assert.equal(prod.assets.directory, "./web/ui/dist/client");
   assert.deepEqual(prod.assets.run_worker_first, ["/api","/api/*","/health"]);

@@ -81,6 +81,6 @@ test("R2 HML: bundle de CI somente offline e nome nao-produtivo",()=>{
   assert.equal(cfg.r2_buckets[0].bucket_name,"synthetic-hml-r2-no-deploy");
   assert.equal(cfg.workers_dev,false);assert.equal(cfg.preview_urls,false);
   assert.equal(cfg.d1_databases,undefined);
-  assert.equal(prod.name,"lunaris-licita");
+  assert.equal(prod.name,"lunaris-licita-lab");
   assert.equal(hml.main,"./web/src/hml/index.mjs");
 });

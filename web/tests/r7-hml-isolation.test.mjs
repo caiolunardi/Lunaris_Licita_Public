@@ -21,7 +21,7 @@ test("HML possui Worker separado da main e recursos estritamente ficticios", () 
   assert.deepEqual(inspectHmlIsolation(x), { ok: true, issues: [] });
   const prod = JSON.parse(x.productionConfig);
   const hml = JSON.parse(x.hmlConfig);
-  assert.equal(prod.name, "lunaris-licita");
+  assert.equal(prod.name, "lunaris-licita-lab");
   assert.equal(hml.name, "lunaris-licita-hml");
   assert.notEqual(prod.main, hml.main);
   assert.equal(hml.d1_databases[0].database_id, HML_DUMMY_D1_ID);
