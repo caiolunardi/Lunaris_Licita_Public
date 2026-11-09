@@ -1,0 +1,24 @@
+name: Temporary hosted runner smoke
+
+on:
+  push:
+    branches:
+      - ci/public-runner-probe-20261109
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  runner-smoke:
+    name: Minimal GitHub-hosted runner check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm runner allocation
+        run: |
+          echo "GitHub-hosted runner started successfully"
+          echo "Runner OS: $RUNNER_OS"
+          uname -a
