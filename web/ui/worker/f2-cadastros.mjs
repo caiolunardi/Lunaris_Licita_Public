@@ -1,11 +1,11 @@
-// F2 / local-only: órgãos e fornecedores por empresa, sem ativar R7 remoto.
-// Sem D1 local + flag explícita + hostname local, tudo permanece HTTP 503.
+// F2: cadastros por empresa Workerd/D1 local ou A1 HML somente sintética.
+// HML exige host fixo, JWT Access e D1 isolado. Produção continua 503.
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive} from "../../src/r7/iam.mjs";
 import {DomainError,hashIntent,identifier,replayOrConflict,requireBatch,strictlyObject} from "../../src/r7/domain.mjs";
+import {a1RuntimeMode} from "./a1-runtime-gate.mjs";
 
 const ROUTE=/^\/api\/v1\/companies\/([A-Za-z0-9_-]{1,128})\/(orgaos|fornecedores)(?:\/([A-Za-z0-9_-]{1,128}))?$/;
-const LOCAL_HOSTS=new Set(["licita.local.test","localhost","127.0.0.1"]);
 const COMMON={
   "cache-control":"private, no-store, max-age=0",
   "content-type":"application/json; charset=utf-8",
@@ -40,7 +40,7 @@ const ALLOWED_ERRORS=new Set([
  "invalid_name","invalid_cnpj","invalid_email","invalid_status_change",
  "json_content_type_required","payload_too_large","invalid_json",
  "idempotency_conflict","record_conflict","record_not_found","version_conflict",
- "record_unavailable","request_rejected"
+ "record_unavailable","request_rejected","hml_synthetic_only"
 ]);
 function json(body,status=200,method="GET"){
  return new Response(method==="HEAD"?null:JSON.stringify(body),{status,headers:COMMON});
@@ -127,9 +127,10 @@ function listParameters(url){
  return {limit,q:normalizeName(q),state,after};
 }
 const escapeLike=s=>s.replace(/[\\%_]/g,c=>"\\"+c);
-async function getList(db,companyId,kind,url){
+async function getList(db,companyId,kind,url,mode){
  const cfg=KINDS[kind],p=listParameters(url),table=cfg.table;
- const statusSql=p.state==="active"?" AND ativo=1":p.state==="inactive"?" AND ativo=0":"";
+ const statusSql=(p.state==="active"?" AND ativo=1":p.state==="inactive"?" AND ativo=0":"")+
+   (mode==="hml"?" AND nome LIKE 'TESTE - %'":"");
  const filterSql=p.q?" AND COALESCE(nome_normalizado,lower(nome)) LIKE ? ESCAPE '\\'":"";
  const values=[companyId];
  if(p.q)values.push(escapeLike(p.q)+"%");
@@ -153,9 +154,10 @@ async function getList(db,companyId,kind,url){
  const items=rows.slice(0,p.limit);
  return {items,nextCursor:hasMore?items.at(-1).id:null,limit:p.limit};
 }
-async function getDetail(db,companyId,kind,recordId){
+async function getDetail(db,companyId,kind,recordId,mode){
  const found=await db.prepare("SELECT "+PUBLIC_FIELDS[kind]+" FROM "+KINDS[kind].table+
-   " WHERE empresa_id=? AND id=? LIMIT 1").bind(companyId,recordId).first();
+   " WHERE empresa_id=? AND id=?"+(mode==="hml"?" AND nome LIKE 'TESTE - %'":"")+
+   " LIMIT 1").bind(companyId,recordId).first();
  if(!found)throw new DomainError("record_not_found",404);
  return {item:found};
 }
@@ -220,6 +222,29 @@ async function writeRecord(db,principal,actor,companyId,kind,recordId,body){
  if(raced)return {replayed:true,intentId:cmd.intentId};
  throw new DomainError("version_conflict",409);
 }
+// Todos os cadastros A1 HML devem ser sintéticos; não aceitar contato/PII.
+async function requireA1Synthetic(db,companyId,kind,recordId,body){
+ if(!body||typeof body!=="object"||Array.isArray(body))
+  throw new DomainError("hml_synthetic_only",403);
+ if(recordId){
+  const row=await db.prepare("SELECT nome,origem_dado FROM "+KINDS[kind].table+
+   " WHERE id=? AND empresa_id=? LIMIT 1").bind(recordId,companyId).first();
+  if(!row||row.origem_dado!=="NATIVO"||!/^TESTE - [^\s]/i.test(row.nome))
+   throw new DomainError("hml_synthetic_only",403);
+ }
+ if(body.ativo===false){
+  if(Object.keys(body).some(k=>!["intentId","expectedVersion","ativo"].includes(k)))
+   throw new DomainError("hml_synthetic_only",403);
+  return;
+ }
+ if(typeof body.nome!=="string"||!/^TESTE - [^\s]/i.test(body.nome))
+  throw new DomainError("hml_synthetic_only",403);
+ for(const [k,v] of Object.entries(body)){
+  if(["nome","intentId","expectedVersion"].includes(k))continue;
+  if(v!==null&&v!==undefined&&v!=="")throw new DomainError("hml_synthetic_only",403);
+ }
+}
+
 export function createF2Handler({fetchKeys}={}){
  return async function handle(request,env){
    const url=new URL(request.url),parts=ROUTE.exec(url.pathname);
@@ -231,9 +256,8 @@ export function createF2Handler({fetchKeys}={}){
      (recordId&&method==="POST")||(!recordId&&method==="PATCH"))
      return json({error:"method_not_allowed"},405,method);
    try{
-     if(!LOCAL_HOSTS.has(url.hostname)||env?.F2_RUNTIME_ENABLED!=="test_local_only"||
-       env?.F1_RUNTIME_ENABLED!=="test_local_only"||!env?.DB?.prepare||!env.DB.batch)
-       throw new SecurityError("f2_not_enabled",503);
+     const mode=a1RuntimeMode(request,env,"F2");
+     if(!mode)throw new SecurityError("f2_not_enabled",503);
      if((method==="POST"||method==="PATCH"))sameSite(request,env);
      if(recordId&&url.search)throw new DomainError("invalid_page");
      if((method==="POST"||method==="PATCH")&&url.search)throw new DomainError("invalid_page");
@@ -242,11 +266,12 @@ export function createF2Handler({fetchKeys}={}){
      const actor=await requireCompanyRole(env.DB,principal,companyId,
        method==="GET"||method==="HEAD"?"read":"write");
      if(method==="GET"||method==="HEAD"){
-       const data=recordId?await getDetail(env.DB,companyId,kind,recordId):
-         await getList(env.DB,companyId,kind,url);
+       const data=recordId?await getDetail(env.DB,companyId,kind,recordId,mode):
+         await getList(env.DB,companyId,kind,url,mode);
        return json(data,200,method);
      }
      const body=await readBody(request);
+     if(mode==="hml")await requireA1Synthetic(env.DB,companyId,kind,recordId,body);
      const result=await writeRecord(env.DB,principal,actor,companyId,kind,recordId,body);
      return json(result,result.replayed?200:method==="POST"?201:200,method);
    }catch(error){

@@ -1,5 +1,6 @@
 // F5: BFF comercial para leitura autorizada e comandos R7 sobre Workerd/D1 local.
 // Nenhum endpoint comercial é publicado remotamente por este Worker.
+import {a2RuntimeMode} from "./a2-runtime-gate.mjs";
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive,requireEntityPermission,assertEntityNotBlocked} from "../../src/r7/iam.mjs";
 import {DomainError,identifier,strictlyObject,positiveInt,money,dateCivil,hashIntent,replayOrConflict,requireBatch} from "../../src/r7/domain.mjs";
@@ -296,9 +297,8 @@ export function createF5Handler({fetchKeys}={}){
   const method=request.method.toUpperCase(),route=routing(parts,method);
   if(!route)return json({error:"method_not_allowed"},405,method);
   try{
-   if(!LOCAL.has(url.hostname)||env?.F1_RUNTIME_ENABLED!=="test_local_only"||
-    env?.F5_RUNTIME_ENABLED!=="test_local_only"||!env?.DB?.prepare||!env.DB.batch)
-    throw new SecurityError("f5_not_enabled",503);
+   if(!a2RuntimeMode(request,env,"F5"))
+     throw new SecurityError("f5_not_enabled",503);
    if(route.kind!=="list"&&url.search)throw new DomainError("invalid_list");
    if(method==="POST"||method==="PATCH")sameSite(request,env);
    const principal=await authenticateAccess(request,env,fetchKeys||fetch);

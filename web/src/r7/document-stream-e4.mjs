@@ -6,6 +6,7 @@ import {requireCompanyRole} from "./security.mjs";
 import {assertEntityNotBlocked} from "./iam.mjs";
 import {DomainError,identifier,hashIntent,replayOrConflict,requireBatch} from "./domain.mjs";
 import {OWNER_ROLES} from "./document-service.mjs";
+import {drainPreflightedUpload} from "./stream-drain.mjs";
 const MAX=8*1024*1024;
 const MIME=new Set(["application/pdf","application/xml","image/png","image/jpeg","text/plain"]);
 const TYPES=Object.freeze({
@@ -51,14 +52,20 @@ export async function uploadStreamToR2(db,r2,principal,companyId,request){
   m.ownerType,m.ownerId,m.role,m.kind,m.name,m.mime,m.sha,m.size
  ]);
  const prior=await replayOrConflict(db,companyId,m.intent,hash,"ANEXAR_DOCUMENTO_STREAM");
- if(prior)return prior;
+ if(prior){
+  await drainPreflightedUpload(request,m.size,"stream_size_mismatch_or_orphan");
+  return prior;
+ }
  const owner=await db.prepare("SELECT id FROM "+m.spec.table+
   " WHERE id=? AND empresa_id=?").bind(m.ownerId,companyId).first();
  if(!owner)throw new DomainError("document_owner_not_found",409);
  const duplicate=await db.prepare("SELECT id FROM documento_vinculos WHERE empresa_id=? AND "+
   m.spec.column+"=? AND papel=? AND ativo=1 LIMIT 1"
  ).bind(companyId,m.ownerId,m.role).first();
- if(duplicate)throw new DomainError("document_role_already_active",409);
+ if(duplicate){
+  await drainPreflightedUpload(request,m.size,"stream_size_mismatch_or_orphan");
+  throw new DomainError("document_role_already_active",409);
+ }
  const doc=crypto.randomUUID(),version=crypto.randomUUID(),
   local=crypto.randomUUID(),link=crypto.randomUUID(),
   key=companyId+"/"+doc+"/"+version;

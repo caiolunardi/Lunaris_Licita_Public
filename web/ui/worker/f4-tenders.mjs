@@ -1,5 +1,6 @@
 // F4 licitações: BFF local-only com contratos R7 já auditados.
 // Sem D1 local, hostname de laboratório e flag explícita, retorna 503.
+import {a2RuntimeMode} from "./a2-runtime-gate.mjs";
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive,requireEntityPermission,requireDocumentPermission} from "../../src/r7/iam.mjs";
 import {DomainError,strictlyObject,identifier,positiveInt,money,hashIntent,replayOrConflict,requireBatch} from "../../src/r7/domain.mjs";
@@ -371,9 +372,8 @@ export function createF4Handler({fetchKeys}={}){
   const method=request.method.toUpperCase(),r=route(parts,method);
   if(!r)return json({error:"method_not_allowed"},405,method);
   try{
-   if(!LOCAL.has(url.hostname)||env?.F1_RUNTIME_ENABLED!=="test_local_only"||
-     env?.F4_RUNTIME_ENABLED!=="test_local_only"||!env?.DB?.prepare||!env.DB.batch)
-    throw new SecurityError("f4_not_enabled",503);
+   if(!a2RuntimeMode(request,env,"F4"))
+     throw new SecurityError("f4_not_enabled",503);
    if(["POST","PATCH"].includes(method))originCheck(request,env);
    if(r.kind!=="list"&&url.search)throw new DomainError("invalid_list");
    const principal=await authenticateAccess(request,env,fetchKeys||fetch);

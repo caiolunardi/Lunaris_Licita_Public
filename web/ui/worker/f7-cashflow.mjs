@@ -1,5 +1,6 @@
 // F7 — BFF financeiro de fácil leitura; apenas Workerd/D1 LOCAL.
 // Nenhum cálculo de saldo bancário: banco informado só no browser (memória).
+import {a2RuntimeMode} from "./a2-runtime-gate.mjs";
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive,assertAggregateAccess,requireEntityPermission,
   requireDocumentPermission} from "../../src/r7/iam.mjs";
@@ -247,9 +248,8 @@ export function createF7Handler({fetchKeys}={}){
   const method=request.method.toUpperCase(),r=path(parts,method);
   if(!r)return json({error:"method_not_allowed"},405,method);
   try{
-   if(!HOSTS.has(url.hostname)||env?.F1_RUNTIME_ENABLED!=="test_local_only"||
-    env?.F7_RUNTIME_ENABLED!=="test_local_only"||!env.DB?.prepare||!env.DB?.batch)
-    throw new SecurityError("f7_not_enabled",503);
+   if(!a2RuntimeMode(request,env,"F7"))
+     throw new SecurityError("f7_not_enabled",503);
    if(!["overview","list"].includes(r.kind)&&url.search)throw new DomainError("invalid_list");
    if(["POST","PATCH"].includes(method))guardOrigin(request,env);
    const principal=await authenticateAccess(request,env,fetchKeys||fetch);

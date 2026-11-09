@@ -1,9 +1,10 @@
-// F1: BFF de identidade SOMENTE para testes Workerd/D1 locais.
+// F1: BFF identidade Workerd/D1 local ou candidato sintético A1 HML.
 // Reutiliza autenticação e revogação R7, sem duplicar lógica de segurança.
-// Não importar esta API no Worker produtivo ou HML; default fail-closed 503.
+// Produção é proibida; HML exige host fixo, flags isoladas e JWT Access RS256.
 import { authenticateAccess, requireCompanyRole, SecurityError } from "../../src/r7/security.mjs";
 import { assertSessionActive, revokeCurrentSession } from "../../src/r7/iam.mjs";
 import { DomainError } from "../../src/r7/domain.mjs";
+import {a1RuntimeMode} from "./a1-runtime-gate.mjs";
 
 const SAFE_HEADERS = Object.freeze({
   "cache-control": "private, no-store, max-age=0",
@@ -75,8 +76,7 @@ export function createF1Handler({fetchKeys}={}) {
       return json({error:"method_not_allowed"},405,method);
     try {
       // Sem F1_RUNTIME_ENABLED no manifest: bloqueio mesmo que alguém publique o código por engano.
-      if(!["licita.local.test","localhost","127.0.0.1"].includes(url.hostname)||
-        env?.F1_RUNTIME_ENABLED!=="test_local_only"||!env?.DB?.prepare||!env.DB.batch)
+      if(!a1RuntimeMode(request,env,"F1"))
         throw new SecurityError("f1_not_enabled",503);
       if(isLogout) sameOrigin(request,env);
       const principal=await authenticateAccess(request,env,fetchKeys||fetch);
