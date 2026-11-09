@@ -12,7 +12,7 @@ function fixture() {
     productionConfig: read("wrangler.jsonc"),
     hmlConfig: read("wrangler.hml.jsonc"),
     hmlCode: read("web/src/hml/index.mjs"),
-    ci: read(".github/workflows/quality.yml"),
+    ci: read(".github/workflows/ci.yml"),
     gitignore: read(".gitignore")
   };
 }
