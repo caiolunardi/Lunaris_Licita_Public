@@ -44,6 +44,8 @@ jobs:
         run: |
           node tools/check-e5-static.mjs
           node tools/check-hml-isolation.mjs
+      - name: Enforce laboratory-only Cloudflare configuration
+        run: node tools/check-lab-safety.mjs
       - name: Generate SQL fixtures
         run: node tools/emit-r7-sql-fixtures.mjs "$RUNNER_TEMP/r7_statements.json"
       - name: SQLite and migration tests

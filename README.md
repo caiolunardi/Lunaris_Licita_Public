@@ -12,6 +12,14 @@ O snapshot não deve ser tratado como autorização para conectar bancos, contas
 
 Os dados demonstrativos presentes no código são fictícios. Não substitua esses dados por informações reais em commits, testes, issues ou capturas de tela.
 
+## Papel deste repositório
+
+Este é exclusivamente o **laboratório público** do projeto. Ele recebe código sanitizado para desenvolvimento, revisão e testes automatizados. O contexto de desenvolvimento, decisões, continuidade, auditorias internas e registros de promoção permanecem no repositório privado `caiolunardi/Lunaris_Licita`.
+
+**Este repositório não é origem de produção e não deve ser conectado ao Cloudflare de produção.** A configuração Wrangler da raiz usa o nome isolado `lunaris-licita-lab`, sem rotas, D1, R2, credenciais ou URLs workers.dev/preview. A CI apenas executa testes e dry-runs; não faz deploy. A promoção para o repositório privado é seletiva, por SHA testado e com revisão explícita, conforme o procedimento mantido no repositório privado.
+
+Não copie contexto privado, histórico operacional, credenciais, IDs de recursos, dados pessoais, documentos ou informações financeiras para este laboratório.
+
 ## Estrutura
 
 - `web/ui/`: interface React, componentes, testes e Worker de laboratório.
