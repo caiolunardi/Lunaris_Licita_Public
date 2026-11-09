@@ -6,7 +6,7 @@ import {generateKeyPairSync,sign,webcrypto} from "node:crypto";
 import {Miniflare} from "miniflare";
 import {createA1HmlHandler} from "../src/hml/a1-candidate.mjs";
 if(!globalThis.crypto)globalThis.crypto=webcrypto;
-const issuer="https://a1-hml-test.invalid", audience="a1-hml-audience", origin="https://licita-hml.invalid";
+const issuer="https://a1-hml-test-synthetic.cloudflareaccess.com", audience="a1-hml-audience", origin="https://licita-hml.invalid";
 const {publicKey,privateKey}=generateKeyPairSync("rsa",{modulusLength:2048});
 const jwk={...publicKey.export({format:"jwk"}),kid:"a1-hml-key",alg:"RS256",use:"sig"};
 const file=["0001_ddl_v1.sql","0002_ddl_v1r_r4.sql","0003_ddl_v1r_r5.sql","0004_ddl_v1r_r6.sql","0005_ddl_v1r_r7_w1.sql","0006_ddl_v1r_r7_quantidades.sql","0007_ddl_v1r_r7_etapa1.sql","0008_ddl_v1r_r7_etapa2_guardas.sql","0009_ddl_v1r_r7_etapa2_retificacoes.sql","0010_ddl_v1r_r7_etapa2_retencao_strict.sql","0011_ddl_v1r_r7_etapa2_ciclos_workerd.sql","0012_ddl_v1r_r7_etapa3_iam.sql","0013_ddl_v1r_r7_etapa4_backup_ledger.sql"];
@@ -67,7 +67,7 @@ test("A1: quem não é homol e não tem flags continua em 503",async()=>{
 test("A1: sem autenticação retorna 401; JWT RS256 forjado/expirado/wrong aud/nbf recusa",async()=>{
  for(const token of ["",jwt("user-a",{},false),jwt("user-a",{exp:1}),
   jwt("user-a",{nbf:Math.floor(Date.now()/1000)+900}),
-  jwt("user-a",{aud:"wrong"}),jwt("user-a",{iss:"https://evil.invalid"})]){
+  jwt("user-a",{aud:"wrong"}),jwt("user-a",{iss:"https://evil-synthetic.cloudflareaccess.com"})]){
   const r=await call("/api/v1/me","GET",null,{token});
   assert.equal(r.status,401,await r.clone().text());
  }

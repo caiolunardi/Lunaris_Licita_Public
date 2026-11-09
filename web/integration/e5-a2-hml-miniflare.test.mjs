@@ -7,7 +7,7 @@ import {generateKeyPairSync,sign,webcrypto} from "node:crypto";
 import {Miniflare} from "miniflare";
 import {createA2HmlHandler} from "../src/hml/a2-candidate.mjs";
 if(!globalThis.crypto)globalThis.crypto=webcrypto;
-const issuer="https://f3-local-only.invalid",audience="f3-local-only-audience";
+const issuer="https://f3-local-only-synthetic.cloudflareaccess.com",audience="f3-local-only-audience";
 const origin="https://licita-hml.invalid",uuid="30000000-0000-4000-8000-000000000001";
 const {publicKey,privateKey}=generateKeyPairSync("rsa",{modulusLength:2048});
 const jwk={...publicKey.export({format:"jwk"}),kid:"local-f3-rsa",alg:"RS256",use:"sig"};

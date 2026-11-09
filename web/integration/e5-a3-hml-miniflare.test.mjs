@@ -7,7 +7,7 @@ import {generateKeyPairSync,sign,createHash,webcrypto} from "node:crypto";
 import {Miniflare} from "miniflare";
 if(!globalThis.crypto)globalThis.crypto=webcrypto;
 const origin="https://licita-hml.invalid";
-const issuer="https://a3-local-only.invalid",aud="a3-local-only";
+const issuer="https://a3-local-only-synthetic.cloudflareaccess.com",aud="a3-local-only";
 const {publicKey,privateKey}=generateKeyPairSync("rsa",{modulusLength:2048});
 const jwk={...publicKey.export({format:"jwk"}),kid:"a3-test-key",alg:"RS256",use:"sig"};
 const files=["0001_ddl_v1.sql","0002_ddl_v1r_r4.sql","0003_ddl_v1r_r5.sql",
