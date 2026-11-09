@@ -156,7 +156,7 @@ test("E5 static gate protege bootstrap e candidato synthetic",()=>{
   productionCode:rd("web/src/index.js"),
   candidateConfig:rd("tests/wrangler-e5-dryrun.jsonc"),
   gitignore:rd(".gitignore"),
-  ci:rd(".github/workflows/quality.yml")
+  ci:rd(".github/workflows/ci.yml")
  };
  assert.deepEqual(inspectE5StaticFiles(snapshot),{ok:true,issues:[]});
  assert.equal(inspectE5StaticFiles({...snapshot,
