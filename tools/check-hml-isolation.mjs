@@ -28,7 +28,7 @@ export function inspectHmlIsolation({ productionConfig, hmlConfig, hmlCode, ci, 
        (prod?.assets?.directory !== "./web/ui/dist/client" ||
         !Array.isArray(prod?.assets?.run_worker_first) ||
         prod.assets.run_worker_first.join(",") !== "/api,/api/*,/health" ||
-        Object.hasOwn(prod,"vars"))) {
+        Object.hasOwn(prod,"vars")))) {
     issues.push("production_bootstrap_modified");
   }
   if (hml?.name !== "lunaris-licita-hml" ||
