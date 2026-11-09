@@ -4,6 +4,7 @@
 import {requireCompanyRole} from "../../src/r7/security.mjs";
 import {DomainError,identifier,hashIntent,replayOrConflict,requireBatch} from "../../src/r7/domain.mjs";
 import {requireDocumentPermission,requireEntityPermission} from "../../src/r7/iam.mjs";
+import {drainPreflightedUpload} from "../../src/r7/stream-drain.mjs";
 const MAX=8*1024*1024;
 const MIME=new Set(["application/pdf","application/xml","image/png","image/jpeg","text/plain"]);
 const sha=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)))
@@ -34,7 +35,10 @@ export async function uploadDocumentVersionStream(db,r2,principal,company,docume
  const requestHash=await hashIntent("NOVA_VERSAO_DOCUMENTO",[
   doc,m.expectedVersion,m.filename,m.contentType,m.size,m.digest]);
  const previous=await replayOrConflict(db,company,m.intentId,requestHash,"NOVA_VERSAO_DOCUMENTO");
- if(previous)return previous;
+ if(previous){
+  await drainPreflightedUpload(request,m.size,"version_stream_size_mismatch");
+  return previous;
+ }
  const row=await db.prepare("SELECT d.id,d.versao,d.versao_corrente_id,v.numero_versao "+
   "FROM documentos d JOIN documento_versoes v ON v.id=d.versao_corrente_id "+
   "AND v.documento_id=d.id AND v.empresa_id=d.empresa_id "+
@@ -43,7 +47,10 @@ export async function uploadDocumentVersionStream(db,r2,principal,company,docume
   "AND EXISTS(SELECT 1 FROM documento_vinculos dv "+
   "WHERE dv.documento_id=d.id AND dv.empresa_id=d.empresa_id AND dv.ativo=1)")
   .bind(doc,company,m.expectedVersion).first();
- if(!row)throw new DomainError("document_version_conflict",409);
+ if(!row){
+  await drainPreflightedUpload(request,m.size,"version_stream_size_mismatch");
+  throw new DomainError("document_version_conflict",409);
+ }
  await requireEntityPermission(db,principal,company,"DOCUMENTO_VERSAO",row.versao_corrente_id,"WRITE");
  const no=row.numero_versao+1;
  if(!Number.isSafeInteger(no)||no<2)throw new DomainError("document_version_conflict",409);

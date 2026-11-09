@@ -1,4 +1,4 @@
-// F8: acervo com bytes, versões e política de guarda — somente D1/R2 LOCAIS.
+// F8: D1/R2 local ou candidato A3 HML estritamente sintético.
 // NENHUMA API externa, R2.delete, URL pública, Drive real, nem backup presumido.
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive,requireEntityPermission,requireDocumentPermission} from "../../src/r7/iam.mjs";
@@ -8,9 +8,10 @@ import {uploadStreamToR2} from "../../src/r7/document-stream-e4.mjs";
 import {reviewArchiveEligibility} from "../../src/r7/archive-eligibility.mjs";
 import {beginArchiveCopy,inspectArchiveAttempt} from "../../src/r7/archive-e4.mjs";
 import {uploadDocumentVersionStream} from "./f8-version-stream.mjs";
+import {a3F8RuntimeMode} from "./a3-runtime-gate.mjs";
+import {drainPreflightedUpload} from "../../src/r7/stream-drain.mjs";
 
 const ROUTE=/^\/api\/v1\/companies\/([A-Za-z0-9_-]{1,128})\/files(?:\/([A-Za-z0-9_-]{1,128}))?(?:\/([A-Za-z0-9_-]{1,128}))?(?:\/([A-Za-z0-9_-]{1,128}))?(?:\/([A-Za-z0-9_-]{1,128}))?$/;
-const HOSTS=new Set(["licita.local.test","localhost","127.0.0.1"]);
 const FIXED={"cache-control":"private, no-store, max-age=0","vary":"cf-access-jwt-assertion",
  "x-frame-options":"DENY","x-content-type-options":"nosniff","referrer-policy":"no-referrer",
  "content-security-policy":"default-src 'none'; frame-ancestors 'none'"};
@@ -259,9 +260,7 @@ export function createF8Handler({fetchKeys,archiveAdapters}={}){
   const method=request.method.toUpperCase(),route=routed(parts,method);
   if(!route)return json({error:"method_not_allowed"},405,method);
   try{
-   if(!HOSTS.has(url.hostname)||env?.F1_RUNTIME_ENABLED!=="test_local_only"||
-    env?.F8_RUNTIME_ENABLED!=="test_local_only"||!env.DB?.prepare||!env.DB?.batch||
-    !env.R2?.get||!env.R2?.put)throw new SecurityError("f8_not_enabled",503);
+   if(!a3F8RuntimeMode(request,env))throw new SecurityError("f8_not_enabled",503);
    if(route.kind!=="list"&&route.kind!=="owners")noSearch(url);
    if(method==="POST")origin(request,env);
    const principal=await authenticateAccess(request,env,fetchKeys||fetch);
@@ -306,6 +305,22 @@ export function createF8Handler({fetchKeys,archiveAdapters}={}){
     result=await inspectArchiveAttempt(db,principal,company,route.intent);
    }
    return json(result,method==="POST"&&!result.replayed?201:200,method);
-  }catch(e){const failure=noDomainLeak(e);return json({error:failure.error},failure.status,method);}
+  }catch(e){
+   // Apenas metadados recusados apos host, Origin, JWT e vinculo na empresa.
+   // Workerd/Miniflare pode resetar POST com bytes não consumidos.
+   if((route.kind==="upload"&&e instanceof DomainError&&
+       e.code==="invalid_stream_document_metadata")||
+      (route.kind==="version_stream"&&e instanceof DomainError&&
+       e.code==="version_stream_invalid")){
+    const n=Number(request.headers.get("content-length"));
+    if(Number.isSafeInteger(n)&&n>=1&&n<=8*1024*1024&&
+       request.body&&!request.bodyUsed){
+     try{await drainPreflightedUpload(request,n,"stream_size_mismatch_or_orphan");}
+     catch{ /* segue negado com o erro original; nenhum dado persistido */ }
+    }
+   }
+   const failure=noDomainLeak(e);
+   return json({error:failure.error},failure.status,method);
+  }
  };
 }

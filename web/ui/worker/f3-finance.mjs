@@ -1,6 +1,7 @@
 // F3: compromissos, contas avulsas, regras mensais e baixas, SOMENTE em D1 sintético local.
 // Sem flag F3 e hostname local, todos os endpoints retornam HTTP 503.
 // Contratos de pagamento e recorrência já auditados na R7 são reutilizados, não copiados.
+import {a2RuntimeMode} from "./a2-runtime-gate.mjs";
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive,assertEntityNotBlocked,requireEntityPermission,
   requireDocumentPermission,assertAggregateAccess} from "../../src/r7/iam.mjs";
@@ -354,8 +355,7 @@ export function createF3Handler({fetchKeys}={}){
   const route=routeOf(parts,method);
   if(!route)return json({error:"method_not_allowed"},405,method);
   try{
-   if(!HOSTS.has(url.hostname)||env?.F1_RUNTIME_ENABLED!=="test_local_only"||
-     env?.F3_RUNTIME_ENABLED!=="test_local_only"||!env?.DB?.prepare||!env?.DB?.batch)
+   if(!a2RuntimeMode(request,env,"F3"))
      throw new SecurityError("f3_not_enabled",503);
    if(method==="POST")originGuard(request,env);
    if(route.kind!=="monthly"&&route.kind!=="listTitles"&&

@@ -1,4 +1,5 @@
 // F6 — Remessas, aceites e notas fiscais. Workerd/D1 sintetico, jamais remoto.
+import {a2RuntimeMode} from "./a2-runtime-gate.mjs";
 import {authenticateAccess,requireCompanyRole,SecurityError} from "../../src/r7/security.mjs";
 import {assertSessionActive,requireEntityPermission} from "../../src/r7/iam.mjs";
 import {DomainError,identifier,strictlyObject,positiveInt,money,dateCivil,
@@ -406,9 +407,8 @@ export function createF6Handler({fetchKeys}={}){
   const method=request.method.toUpperCase(),r=route(parts,method);
   if(!r)return json({error:"method_not_allowed"},405,method);
   try{
-   if(!LOCAL.has(url.hostname)||env?.F1_RUNTIME_ENABLED!=="test_local_only"||
-    env?.F6_RUNTIME_ENABLED!=="test_local_only"||!env?.DB?.prepare||!env.DB.batch)
-    throw new SecurityError("f6_not_enabled",503);
+   if(!a2RuntimeMode(request,env,"F6"))
+     throw new SecurityError("f6_not_enabled",503);
    if(r.kind!=="list"&&url.search)throw new DomainError("invalid_list");
    if(["POST","PATCH"].includes(method))originGuard(request,env);
    const principal=await authenticateAccess(request,env,fetchKeys||fetch);

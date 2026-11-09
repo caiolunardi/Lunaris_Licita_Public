@@ -38,7 +38,7 @@ jobs:
           python-version: '3.12'
       - name: Install root test dependencies
         run: npm install --no-save --no-package-lock --no-audit --no-fund
-      - name: JavaScript and Workerd tests
+      - name: JavaScript, Workerd and A0 candidate tests
         run: npm run test:node
       - name: Static bootstrap and HML safety gates
         run: |
@@ -46,6 +46,16 @@ jobs:
           node tools/check-hml-isolation.mjs
       - name: Enforce laboratory-only Cloudflare configuration
         run: node tools/check-lab-safety.mjs
+      - name: A0 candidate isolation and offline bundles
+        run: |
+          node tools/check-public-a0-candidate.mjs
+          node --check web/src/hml/a1-candidate.mjs
+          node --check web/src/hml/a2-candidate.mjs
+          node --check web/src/hml/a3-candidate.mjs
+          unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID CF_API_TOKEN
+          mkdir -p "$RUNNER_TEMP/a0-a1" "$RUNNER_TEMP/a0-a2"
+          npx wrangler deploy --dry-run --config tests/wrangler-a1-hml-dryrun.jsonc --outdir "$RUNNER_TEMP/a0-a1"
+          npx wrangler deploy --dry-run --config tests/wrangler-a2-hml-dryrun.jsonc --outdir "$RUNNER_TEMP/a0-a2"
       - name: Generate SQL fixtures
         run: node tools/emit-r7-sql-fixtures.mjs "$RUNNER_TEMP/r7_statements.json"
       - name: SQLite and migration tests
