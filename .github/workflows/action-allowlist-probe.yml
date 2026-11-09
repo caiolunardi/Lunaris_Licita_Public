@@ -1,0 +1,50 @@
+name: Temporary action allowlist probe
+
+on:
+  push:
+    branches:
+      - ci/public-runner-probe-20261109
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  checkout:
+    name: Test actions/checkout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - run: echo "checkout action allowed"
+
+  setup-node:
+    name: Test actions/setup-node
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: '22.12.0'
+      - run: node --version
+
+  setup-python:
+    name: Test actions/setup-python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python --version
+
+  gitleaks:
+    name: Test gitleaks/gitleaks-action
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: "false"
+        with:
+          redact: true
