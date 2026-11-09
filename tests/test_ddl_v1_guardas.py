@@ -6,10 +6,20 @@ import unittest
 from test_ddl_v1 import DdlBase, MIGRATION, TABLES
 
 
+# A matriz é um artefato interno de auditoria mantido no repositório privado.
+# Quando ela acompanha o código (desenvolvimento privado), a prova roda normalmente.
+# Na exportação pública reduzida, o teste fica explicitamente ignorado.
+LEGACY_MATRIX = (MIGRATION.parent.parent / "docs" / "architecture" /
+                 "MATRIZ_COBERTURA_LEGADO_V1.md")
+
+
 class TestDicionarioFisico(DdlBase):
+    @unittest.skipUnless(
+        LEGACY_MATRIX.is_file(),
+        "matriz interna de auditoria nao incluida no snapshot publico",
+    )
     def test_350_campos_legados_apontam_para_colunas_existentes(self):
-        matrix = (MIGRATION.parent.parent / "docs" / "architecture" /
-                  "MATRIZ_COBERTURA_LEGADO_V1.md").read_text(encoding="utf-8")
+        matrix = LEGACY_MATRIX.read_text(encoding="utf-8")
         bt = chr(96)
         rows = []
         for line in matrix.splitlines():

@@ -20,6 +20,9 @@ Os dados demonstrativos presentes no código são fictícios. Não substitua ess
 - `migrations/`: migrations SQL versionadas.
 - `tests/`: testes de integridade e compatibilidade SQLite.
 - `tools/emit-r7-sql-fixtures.mjs`: geração de fixtures SQL para testes.
+- `tools/check-e5-static.mjs` e `tools/check-hml-isolation.mjs`: guardas offline de configuração e isolamento.
+
+O snapshot público não inclui ferramentas operacionais privadas de preparação do D1 HML nem matrizes internas de auditoria; os respectivos testes e documentos permanecem no repositório privado de desenvolvimento.
 
 ## Requisitos
 
