@@ -120,5 +120,5 @@ test("transacoes HML: manifesto offline nao contem D1 real ou Worker produtivo",
  assert.equal(manifest.d1_databases[0].database_id,"00000000-0000-4000-8000-000000000000");
  assert.equal(manifest.workers_dev,false);
  assert.equal(manifest.preview_urls,false);
- assert.equal(prod.name,"lunaris-licita");
+ assert.equal(prod.name,"lunaris-licita-lab");
 });

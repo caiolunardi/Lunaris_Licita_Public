@@ -23,7 +23,7 @@ test("assets recebem proteção e ausência de binding falha de modo fechado", a
 });
 test("deploy mantém workers.dev e preview desativados, sem banco", () => {
   const cfg = JSON.parse(readFileSync(new URL("../../wrangler.jsonc", import.meta.url), "utf8"));
-  assert.equal(cfg.name, "lunaris-licita");
+  assert.equal(cfg.name, "lunaris-licita-lab");
   assert.equal(cfg.workers_dev, false);
   assert.equal(cfg.preview_urls, false);
   assert.deepEqual(cfg.assets.run_worker_first, ["/api","/api/*","/health"]);

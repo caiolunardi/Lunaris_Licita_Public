@@ -1,4 +1,4 @@
-// Offline: prova que o Worker público permanece bootstrap e que
+// Offline: prova que o Worker do laboratório permanece isolado e que
 // nenhum binding/ID remoto entra acidentalmente na configuração candidate.
 import {readFileSync} from "node:fs";
 function read(p){return readFileSync(new URL("../"+p,import.meta.url),"utf8");}
@@ -8,7 +8,7 @@ export function inspectE5StaticFiles({productionConfig,productionCode,
  let pub,probe;
  try{pub=JSON.parse(productionConfig);probe=JSON.parse(candidateConfig);}
  catch{return {ok:false,issues:["wrangler_config_invalid"]};}
- if(pub?.name!=="lunaris-licita"||
+ if(pub?.name!=="lunaris-licita-lab"||
     !["./web/src/index.js","./web/ui/worker/index.mjs"].includes(pub?.main)||
     pub?.workers_dev!==false||pub?.preview_urls!==false||
     pub?.d1_databases?.length||pub?.r2_buckets?.length||

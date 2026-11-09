@@ -15,7 +15,7 @@ export function inspectHmlIsolation({ productionConfig, hmlConfig, hmlCode, ci, 
   } catch {
     return { ok: false, issues: ["invalid_json_config"] };
   }
-  if (prod?.name !== "lunaris-licita" ||
+  if (prod?.name !== "lunaris-licita-lab" ||
       ![
         "./web/src/index.js",
         "./web/ui/worker/index.mjs"

@@ -1,5 +1,5 @@
 {
-  "name": "lunaris-licita",
+  "name": "lunaris-licita-lab",
   "main": "./web/ui/worker/index.mjs",
   "compatibility_date": "2026-11-06",
   "workers_dev": false,
