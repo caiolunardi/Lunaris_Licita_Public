@@ -16,6 +16,11 @@ for (const { path, name } of checks) {
   assert.equal(config.routes, undefined, `${path}: production routes are forbidden in the public lab`);
   assert.equal(config.route, undefined, `${path}: production route is forbidden in the public lab`);
   assert.equal(config.custom_domains, undefined, `${path}: custom domains are forbidden in the public lab`);
+  assert.equal(config.vars, undefined, `${path}: runtime vars are forbidden in the public lab`);
+  assert.equal(config.env, undefined, `${path}: environment-specific bindings are forbidden in the public lab`);
+  assert.equal(config.durable_objects, undefined, `${path}: durable objects are forbidden in the public lab`);
+  assert.equal(config.services, undefined, `${path}: service bindings are forbidden in the public lab`);
+  assert.equal(config.queues, undefined, `${path}: queue bindings are forbidden in the public lab`);
   assert.equal(config.account_id, undefined, `${path}: account IDs are not allowed in tracked lab config`);
   assert.equal(config.zone_id, undefined, `${path}: zone IDs are not allowed in tracked lab config`);
   const serialized = JSON.stringify(config);

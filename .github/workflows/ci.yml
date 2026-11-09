@@ -40,7 +40,7 @@ jobs:
         run: npm install --no-save --no-package-lock --no-audit --no-fund
       - name: JavaScript and Workerd tests
         run: npm run test:node
-      - name: Static production and HML safety gates
+      - name: Static bootstrap and HML safety gates
         run: |
           node tools/check-e5-static.mjs
           node tools/check-hml-isolation.mjs
@@ -56,7 +56,7 @@ jobs:
         run: npm ci --prefix web/ui --no-audit --no-fund
       - name: Typecheck, UI tests, and production build
         run: npm run check --prefix web/ui
-      - name: Wrangler production and HML dry-runs (no deployment)
+      - name: Wrangler lab and HML dry-runs (no deployment)
         run: |
           npx wrangler deploy --dry-run --config wrangler.jsonc
           npx wrangler deploy --dry-run --config wrangler.hml.jsonc
