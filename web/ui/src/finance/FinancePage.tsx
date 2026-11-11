@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent,type ReactNode} from "react";
-import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowRight,CalendarDays,CheckCircle2,ChevronRight,
  Landmark,Plus,RefreshCcw,Repeat2,Search,ShieldAlert,
  Undo2,WalletCards} from "lucide-react";
@@ -336,9 +336,9 @@ export default function FinancePage({mode,identity,onIdentity,onNavigate}:Financ
   <div className="page-intro"><div><p className="eyebrow">F3 · {labels[mode].eyebrow}</p>
    <h1>{labels[mode].title}</h1><p>{labels[mode].sub}</p></div>
    <span className="intro-decoration"><WalletCards size={34}/></span></div>
-  <Notice title={demo?"Laboratório fictício — sem persistência":
-    verified?"Financeiro validado no D1 local":"Financeiro protegido"}>
-   {demo?"Valores e pagamentos demonstrativos, sem movimento real ou dados bancários.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — financeiro no D1 HML":demo?"Laboratório fictício — sem persistência":verified?"Financeiro validado no D1 local":"Financeiro protegido"}>
+   {a2SyntheticOrigin(window.location.origin)?"Somente dados fictícios: nomes, descrições e motivos precisam começar com TESTE -. Sem pagamentos bancários, dados pessoais ou documentos reais. Operações autorizadas são registradas no D1 de homologação.":
+    demo?"Valores e pagamentos demonstrativos, sem movimento real ou dados bancários.":
     verified?"Sessão e empresa verificadas no Worker/D1 sintético local. Ninguém está publicando operações financeiras.":
     "Valide sua identidade e escolha uma empresa para consultar o financeiro. Prévia fictícia disponível no seletor de identidade."}
   </Notice>
