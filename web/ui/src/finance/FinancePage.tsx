@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent,type ReactNode} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
 import {ArrowRight,CalendarDays,CheckCircle2,ChevronRight,
  Landmark,Plus,RefreshCcw,Repeat2,Search,ShieldAlert,
  Undo2,WalletCards} from "lucide-react";
@@ -183,7 +184,7 @@ export default function FinancePage({mode,identity,onIdentity,onNavigate}:Financ
  };
  async function post(path:string,payload:Record<string,unknown>):Promise<{intentId:string;replayed?:boolean}>{
   const response=await fetch(path,{method:"POST",credentials:"same-origin",cache:"no-store",
-   headers:{"content-type":"application/json","accept":"application/json"},
+   headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
    body:JSON.stringify(payload)});
   if(!response.ok)throw Object.assign(new Error("write_rejected"),{status:response.status});
   return response.json() as Promise<{intentId:string;replayed?:boolean}>;
@@ -196,7 +197,7 @@ export default function FinancePage({mode,identity,onIdentity,onNavigate}:Financ
   e.preventDefault();if(!write||saving||!newKind)return;
   const valor=parseMoneyBRL(newKind==="title"?titleForm.valor:ruleForm.valor);
   if(!valor){setError("Informe um valor maior que zero, com até duas casas decimais.");return;}
-  const intentId=actionIntent.current||crypto.randomUUID();actionIntent.current=intentId;
+  const intentId=actionIntent.current||a2SyntheticIntent(crypto.randomUUID());actionIntent.current=intentId;
   setSaving(true);setError(null);
   if(demo){
    const id="f3-demo-created-"+crypto.randomUUID();
@@ -242,7 +243,7 @@ export default function FinancePage({mode,identity,onIdentity,onNavigate}:Financ
   e.preventDefault();if(!action||!write||saving)return;
   const isTitle=["pay","undo","revise","cancel","notes"].includes(action.kind);
   const id=action.item.id,versao=action.item.versao;
-  const intentId=actionIntent.current||crypto.randomUUID();actionIntent.current=intentId;
+  const intentId=actionIntent.current||a2SyntheticIntent(crypto.randomUUID());actionIntent.current=intentId;
   let url=(isTitle?titlesURL:recURL)+"/"+encodeURIComponent(id);
   let payload:Record<string,unknown>={intentId,expectedVersion:versao};
   if(action.kind==="pay"){
