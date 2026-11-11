@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
-import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,Box,Building2,ClipboardList,
  Plus,RefreshCcw,Search,ShieldAlert,ShoppingCart,Truck} from "lucide-react";
 import {Badge,Button,Card,EmptyState,Notice,SectionHeading,Skeleton} from "../components/UI";
@@ -310,8 +310,9 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
     <p>{label.description}</p></div>
    <span className="intro-decoration" aria-hidden="true">{kind==="commitments"?<ClipboardList size={34}/>:<ShoppingCart size={34}/>}</span>
   </div>
-  <Notice title={demo?"Demonstração sintética; sem persistência":verified?"Operações protegidas no D1 local":"Acesso protegido"}>
-   {demo?"Estes registros são fictícios e as ações existem somente na memória do navegador. Não criam dinheiro, boleto ou NF.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — empenhos/compras D1 HML":demo?"Demonstração sintética; sem persistência":verified?"Operações protegidas no D1 local":"Acesso protegido"}>
+   {a2SyntheticOrigin(window.location.origin)?"Somente empenhos e compras fictícios, com números e campos textuais TESTE -. Sem fornecedores, endereços ou documentos reais; o Worker confere empresa, versões, saldos e idempotência.":
+    demo?"Estes registros são fictícios e as ações existem somente na memória do navegador. Não criam dinheiro, boleto ou NF.":
     verified?"O servidor confere empresa, JWT, ACL e quantidade restante antes de confirmar uma operação.":
     "Selecione uma empresa autorizada em Identidade e acesso para visualizar compromissos."}
   </Notice>
