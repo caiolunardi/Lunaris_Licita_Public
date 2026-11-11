@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent,type ReactNode} from "react";
-import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,BriefcaseBusiness,CheckCircle2,ClipboardList,
  FileCheck2,FileText,Landmark,Link2,Plus,RefreshCcw,Search,
  ShieldAlert,Undo2} from "lucide-react";
@@ -371,9 +371,9 @@ export default function TenderPage({identity,onIdentity}:TenderProps){
   <div className="page-intro"><div><p className="eyebrow">F4 · Gestão comercial</p>
    <h1>Licitações</h1><p>Da análise do edital à decisão por item, sem inventar empenhos ou receitas.</p></div>
    <span className="intro-decoration" aria-hidden="true"><BriefcaseBusiness size={36}/></span></div>
-  <Notice title={demo?"Dados fictícios — somente nesta sessão":
-    verified?"Licitações verificadas no D1 local":"Acesso protegido"}>
-   {demo?"As licitações, decisões e alterações são simuladas em memória. Não persistem após atualizar.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — licitações no D1 HML":demo?"Dados fictícios — somente nesta sessão":verified?"Licitações verificadas no D1 local":"Acesso protegido"}>
+   {a2SyntheticOrigin(window.location.origin)?"Registre apenas licitações e itens TESTE -, sem documentos, URLs ou dados de órgãos reais. Escritas exigem JWT, permissão e autorização sintética no Worker. Vinculação de documentos aguarda A3.":
+    demo?"As licitações, decisões e alterações são simuladas em memória. Não persistem após atualizar.":
     verified?"As consultas e comandos exigem empresa, sessão e permissões válidas. Nenhuma API remota está liberada.":
     "Escolha uma empresa na Identidade e acesso. Sem contexto autorizado não carregamos processos."}
   </Notice>
