@@ -1,5 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
-import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowLeft,FileText,PackageCheck,Plus,RefreshCcw,Truck} from "lucide-react";
 import {Badge,Button,Card,EmptyState,Notice,SectionHeading,Skeleton} from "../components/UI";
 import {parseMoneyBRL} from "../finance/types";
@@ -290,8 +290,9 @@ export default function FulfillmentPage({kind,identity,onIdentity}:Props){
    <h1>{label}</h1><p>{invoice?"Faturamento, parcelas e conciliação por empenho.":
    "Remessas fracionadas, rastreamento e aceite/recusa de entrega."}</p></div>
    {invoice?<FileText size={32}/>:<Truck size={32}/>}</div>
-  <Notice title={preview?"Demonstração sintética":"API restrita a Workerd/D1 local"}>
-   {preview?"Demonstração sintética; sem persistência no banco.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — envios e notas D1 HML":preview?"Demonstração sintética":"API restrita a Workerd/D1 local"}>
+   {a2SyntheticOrigin(window.location.origin)?"Somente registros TESTE -, sem chave fiscal real, rastreio externo, documentos, contatos ou arquivos. Emissões e créditos reais permanecem proibidos; o Worker aplica as permissões.":
+    preview?"Demonstração sintética; sem persistência no banco.":
     "Nenhuma API F6 está habilitada em produção. E5/E6 aguardam homologação."}</Notice>
   <div className="f4-company"><span><PackageCheck size={21}/></span><div><small>Empresa ativa</small>
    <strong>{company.name} · {company.role}</strong></div>
