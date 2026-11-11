@@ -7,6 +7,7 @@ import {
 import { Badge, Button, Card, EmptyState, IconButton, Notice, ProgressPill, SearchInput, SectionHeading, Skeleton, StatCard } from "./components/UI";
 import { exampleBars, exampleProcesses, phases } from "./fixtures";
 import { useIdentity } from "./identity/session";
+import {a2SyntheticOrigin} from "./hml/a2-synthetic";
 
 const GabiPanel = lazy(() => import("./components/GabiPanel"));
 const IdentityPage = lazy(() => import("./identity/IdentityPage"));
@@ -45,6 +46,10 @@ const nav = [
   { page: "components" as const, label: "Componentes", icon: Layers3 },
   { page: "performance" as const, label: "Desempenho", icon: Gauge }
 ];
+const isA2Hml = a2SyntheticOrigin(window.location.origin);
+const navigation = isA2Hml ? nav.filter(item=>["identity","orgaos","fornecedores",
+  "finance","titles","recurrences","tenders","commitments","purchases",
+  "shipments","invoices","receivables"].includes(item.page)) : nav;
 const future = [
   { label: "Gabi: consulta em preparação", icon: Sparkles }
 ];
@@ -184,9 +189,9 @@ export default function App() {
       <div className="workspace-select"><span className="workspace-symbol">L</span><div><small>Espaço de trabalho</small><strong>{identity.state.active?.name ?? "Laboratório F0–F9"}</strong></div><ChevronDown size={16} aria-hidden="true"/></div>
       <div className="sidebar-scroll">
         <p className="nav-heading">EXPERIÊNCIA</p>
-        <nav aria-label="Laboratório">{nav.map(item => <a key={item.page} href={links[item.page]} onClick={e => navigate(e, item.page)} aria-current={page === item.page ? "page" : undefined} className={`nav-link ${page === item.page ? "nav-link--active" : ""}`}><item.icon size={19} aria-hidden="true"/>{item.label}{page === item.page && <span className="nav-marker"/>}</a>)}</nav>
-        <p className="nav-heading nav-heading--later">PRÓXIMAS ETAPAS</p>
-        <div aria-label="Módulos ainda indisponíveis">{future.map(item => <span key={item.label} className="nav-link nav-link--disabled" aria-disabled="true"><item.icon size={18} aria-hidden="true"/>{item.label}<span className="soon-dot" aria-hidden="true"/></span>)}</div>
+        <nav aria-label="Laboratório">{navigation.map(item => <a key={item.page} href={links[item.page]} onClick={e => navigate(e, item.page)} aria-current={page === item.page ? "page" : undefined} className={`nav-link ${page === item.page ? "nav-link--active" : ""}`}><item.icon size={19} aria-hidden="true"/>{item.label}{page === item.page && <span className="nav-marker"/>}</a>)}</nav>
+        {!isA2Hml&&<p className="nav-heading nav-heading--later">PRÓXIMAS ETAPAS</p>}
+        <div aria-label="Módulos ainda indisponíveis">{!isA2Hml&&future.map(item => <span key={item.label} className="nav-link nav-link--disabled" aria-disabled="true"><item.icon size={18} aria-hidden="true"/>{item.label}<span className="soon-dot" aria-hidden="true"/></span>)}</div>
       </div>
       <div className="sidebar-bottom"><button type="button" className="side-help" onClick={()=>goTo("help")}><BookOpen size={18} aria-hidden="true"/><div><strong>Precisa de ajuda?</strong><span>Veja orientações simples</span></div></button><div className="sidebar-version"><span className="alive-dot"/> F10 • Gabi somente leitura</div></div>
     </aside>
@@ -259,6 +264,6 @@ export default function App() {
       </div></main>
     </div>
     <button className="gabi-launcher" type="button" aria-label={gabiOpen ? "Ocultar painel da Gabi" : "Abrir apresentação da Gabi"} aria-expanded={gabiOpen} onClick={() => setGabiOpen(o => !o)}><Sparkles size={20} aria-hidden="true"/><span>Gabi</span></button>
-    {gabiOpen && <Suspense fallback={<div className="gabi-panel gabi-loading" role="status">Preparando apresentação…</div>}><GabiPanel key={(identity.state.active?.id||"none")+":"+identity.state.stage} onClose={() => setGabiOpen(false)} identity={identity.state} onIdentity={()=>goTo("identity")}/></Suspense>}
+    {!isA2Hml&&gabiOpen && <Suspense fallback={<div className="gabi-panel gabi-loading" role="status">Preparando apresentação…</div>}><GabiPanel key={(identity.state.active?.id||"none")+":"+identity.state.stage} onClose={() => setGabiOpen(false)} identity={identity.state} onIdentity={()=>goTo("identity")}/></Suspense>}
   </div>;
 }

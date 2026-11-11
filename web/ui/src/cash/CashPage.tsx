@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,CalendarClock,CheckCircle2,ChevronRight,
  CircleHelp,Clock3,Landmark,RefreshCcw,WalletCards} from "lucide-react";
 import {Badge,Button,Card,EmptyState,Notice,SectionHeading,Skeleton} from "../components/UI";
@@ -58,7 +59,7 @@ export default function CashPage({mode,identity,onIdentity,onNavigate}:PageProps
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false);
  const [error,setError]=useState<string|null>(null),[success,setSuccess]=useState<string|null>(null);
  const [refresh,setRefresh]=useState(0),serial=useRef(0),intent=useRef<string|null>(null);
- const myIntent=()=>{if(!intent.current)intent.current=crypto.randomUUID();return intent.current;};
+ const myIntent=()=>{if(!intent.current)intent.current=a2SyntheticIntent(crypto.randomUUID());return intent.current;};
  const resetAction=()=>{intent.current=null;setError(null);setSuccess(null);};
  const get=useCallback(async<T,>(url:string):Promise<T>=>{
   const r=await fetch(url,{credentials:"same-origin",cache:"no-store",
@@ -68,7 +69,7 @@ export default function CashPage({mode,identity,onIdentity,onNavigate}:PageProps
  },[]);
  const send=useCallback(async(url:string,body:unknown,method="POST"):Promise<Record<string,unknown>>=>{
   const r=await fetch(url,{method,credentials:"same-origin",cache:"no-store",
-   headers:{"content-type":"application/json","accept":"application/json"},
+   headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
    body:JSON.stringify(body)});
   if(!r.ok)throw Object.assign(new Error("api_unavailable"),{status:r.status});
   return r.json() as Promise<Record<string,unknown>>;
@@ -233,8 +234,9 @@ export default function CashPage({mode,identity,onIdentity,onNavigate}:PageProps
     "Veja o que já entrou, o que ainda vai sair e planeje o mês com calma.":
     "Cada parcela da nota fiscal aparece uma única vez. Só marque recebida após conferir o banco."}</p></div>
    <Landmark size={35} aria-hidden="true"/></div>
-  <Notice title={preview?"Simulação com valores fictícios":"Integração local com acesso protegido"}>
-   {preview?"Todos os valores são exemplos. Não há dinheiro, boleto ou banco conectado.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — fluxo de caixa D1 HML":preview?"Simulação com valores fictícios":"Integração local com acesso protegido"}>
+   {a2SyntheticOrigin(window.location.origin)?"Os valores exibidos são somente testes no D1 HML. Nenhum crédito bancário é realizado. Movimentos usam empresa e permissão verificadas, com confirmação e histórico; documentos e retenções atestadas aguardam A3.":
+    preview?"Todos os valores são exemplos. Não há dinheiro, boleto ou banco conectado.":
     "A consulta usa somente D1/Workerd local. Homologação remota E5/E6 pendente."}</Notice>
   <div className="f4-company"><span><WalletCards size={21}/></span>
    <div><small>Empresa selecionada</small><strong>{company.name} · {company.role}</strong></div>

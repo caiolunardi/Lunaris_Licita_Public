@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,Box,Building2,ClipboardList,
  Plus,RefreshCcw,Search,ShieldAlert,ShoppingCart,Truck} from "lucide-react";
 import {Badge,Button,Card,EmptyState,Notice,SectionHeading,Skeleton} from "../components/UI";
@@ -206,7 +207,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
    lines.push({parentItemId:row.id,quantidadeMil:q,valorUnitCent:price});
   }
   if(lines.length===0||lines.length>20){setError("Selecione entre 1 e 20 itens com quantidade.");return;}
-  const id=intent.current||crypto.randomUUID();intent.current=id;
+  const id=intent.current||a2SyntheticIntent(crypto.randomUUID());intent.current=id;
   const payload={intentId:id,parentId,expectedParentVersion:available.parent.versao,
    numero:numero.trim(),items:lines,...(kind==="purchases"?{fornecedorId:supplierId}:{})};
   setPending(true);setError(null);setNotice(null);
@@ -243,7 +244,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
   }
   try{
    const res=await fetch(endpoint,{method:"POST",credentials:"same-origin",cache:"no-store",
-    headers:{"content-type":"application/json","accept":"application/json"},
+    headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
     body:JSON.stringify(payload)});
    if(!res.ok)throw Object.assign(new Error("post_failed"),{status:res.status});
    const data=await res.json() as {intentId?:string;empenhoId?:string;compraId?:string;replayed?:boolean};
@@ -270,7 +271,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
   e.preventDefault();if(pending||!canWrite||!detail||kind!=="purchases")return;
   const frete=costValue(costs.frete),outros=costValue(costs.outros);
   if(frete===null||outros===null){setError("Frete e outros custos devem ser valores monetários válidos.");return;}
-  const intentId=intent.current||crypto.randomUUID();intent.current=intentId;
+  const intentId=intent.current||a2SyntheticIntent(crypto.randomUUID());intent.current=intentId;
   const payload={intentId,expectedVersion:detail.item.versao,
    freteCent:frete,outrosCustosCent:outros,condicaoPagamento:costs.condicao.trim()||null,
    dataCompra:costs.dataCompra||null,previsaoDespacho:costs.previsaoDespacho||null,
@@ -290,7 +291,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
   try{
    const response=await fetch(endpoint+"/"+encodeURIComponent(detail.item.id),{
     method:"PATCH",credentials:"same-origin",cache:"no-store",
-    headers:{"content-type":"application/json","accept":"application/json"},
+    headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
     body:JSON.stringify(payload)});
    if(!response.ok)throw Object.assign(new Error("cost_failed"),{status:response.status});
    const result=await response.json() as {intentId?:string;replayed?:boolean};
@@ -309,8 +310,9 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
     <p>{label.description}</p></div>
    <span className="intro-decoration" aria-hidden="true">{kind==="commitments"?<ClipboardList size={34}/>:<ShoppingCart size={34}/>}</span>
   </div>
-  <Notice title={demo?"Demonstração sintética; sem persistência":verified?"Operações protegidas no D1 local":"Acesso protegido"}>
-   {demo?"Estes registros são fictícios e as ações existem somente na memória do navegador. Não criam dinheiro, boleto ou NF.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — empenhos/compras D1 HML":demo?"Demonstração sintética; sem persistência":verified?"Operações protegidas no D1 local":"Acesso protegido"}>
+   {a2SyntheticOrigin(window.location.origin)?"Somente empenhos e compras fictícios, com números e campos textuais TESTE -. Sem fornecedores, endereços ou documentos reais; o Worker confere empresa, versões, saldos e idempotência.":
+    demo?"Estes registros são fictícios e as ações existem somente na memória do navegador. Não criam dinheiro, boleto ou NF.":
     verified?"O servidor confere empresa, JWT, ACL e quantidade restante antes de confirmar uma operação.":
     "Selecione uma empresa autorizada em Identidade e acesso para visualizar compromissos."}
   </Notice>

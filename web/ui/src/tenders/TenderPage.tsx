@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent,type ReactNode} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders,a2SyntheticOrigin} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,BriefcaseBusiness,CheckCircle2,ClipboardList,
  FileCheck2,FileText,Landmark,Link2,Plus,RefreshCcw,Search,
  ShieldAlert,Undo2} from "lucide-react";
@@ -102,7 +103,7 @@ export default function TenderPage({identity,onIdentity}:TenderProps){
  },[]);
  const post=async(url:string,data:object,method:"POST"|"PATCH"="POST")=>{
   const response=await fetch(url,{method,cache:"no-store",credentials:"same-origin",
-   headers:{"content-type":"application/json","accept":"application/json"},
+   headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
    body:JSON.stringify(data)});
   if(!response.ok)throw Object.assign(new Error("write_failed"),{status:response.status});
   return response.json() as Promise<{id?:string;newVersion?:number;intentId:string;replayed?:boolean;cicloId?:string}>;
@@ -196,7 +197,7 @@ export default function TenderPage({identity,onIdentity}:TenderProps){
  };
  const beginReason=(kind:"close"|"reopen")=>{setReason("");chooseScreen(kind);};
  const beginDocument=()=>{setDocumentId("");setDocumentRole("EDITAL");chooseScreen("document");};
- const createIntent=()=>{const value=intent.current||crypto.randomUUID();intent.current=value;return value;};
+ const createIntent=()=>{const value=intent.current||a2SyntheticIntent(crypto.randomUUID());intent.current=value;return value;};
  function success(note:string){setMessage(note);setError(null);intent.current=null;setSaving(false);}
  function mutateDemo(id:string,fn:(d:TenderDetail)=>TenderDetail):TenderDetail|null{
   const previous=demoDetails.find(x=>x.item.id===id);
@@ -370,9 +371,9 @@ export default function TenderPage({identity,onIdentity}:TenderProps){
   <div className="page-intro"><div><p className="eyebrow">F4 · Gestão comercial</p>
    <h1>Licitações</h1><p>Da análise do edital à decisão por item, sem inventar empenhos ou receitas.</p></div>
    <span className="intro-decoration" aria-hidden="true"><BriefcaseBusiness size={36}/></span></div>
-  <Notice title={demo?"Dados fictícios — somente nesta sessão":
-    verified?"Licitações verificadas no D1 local":"Acesso protegido"}>
-   {demo?"As licitações, decisões e alterações são simuladas em memória. Não persistem após atualizar.":
+  <Notice title={a2SyntheticOrigin(window.location.origin)?"Homologação A2 — licitações no D1 HML":demo?"Dados fictícios — somente nesta sessão":verified?"Licitações verificadas no D1 local":"Acesso protegido"}>
+   {a2SyntheticOrigin(window.location.origin)?"Registre apenas licitações e itens TESTE -, sem documentos, URLs ou dados de órgãos reais. Escritas exigem JWT, permissão e autorização sintética no Worker. Vinculação de documentos aguarda A3.":
+    demo?"As licitações, decisões e alterações são simuladas em memória. Não persistem após atualizar.":
     verified?"As consultas e comandos exigem empresa, sessão e permissões válidas. Nenhuma API remota está liberada.":
     "Escolha uma empresa na Identidade e acesso. Sem contexto autorizado não carregamos processos."}
   </Notice>
