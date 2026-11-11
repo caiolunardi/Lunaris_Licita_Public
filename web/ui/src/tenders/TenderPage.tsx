@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent,type ReactNode} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,BriefcaseBusiness,CheckCircle2,ClipboardList,
  FileCheck2,FileText,Landmark,Link2,Plus,RefreshCcw,Search,
  ShieldAlert,Undo2} from "lucide-react";
@@ -102,7 +103,7 @@ export default function TenderPage({identity,onIdentity}:TenderProps){
  },[]);
  const post=async(url:string,data:object,method:"POST"|"PATCH"="POST")=>{
   const response=await fetch(url,{method,cache:"no-store",credentials:"same-origin",
-   headers:{"content-type":"application/json","accept":"application/json"},
+   headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
    body:JSON.stringify(data)});
   if(!response.ok)throw Object.assign(new Error("write_failed"),{status:response.status});
   return response.json() as Promise<{id?:string;newVersion?:number;intentId:string;replayed?:boolean;cicloId?:string}>;
@@ -196,7 +197,7 @@ export default function TenderPage({identity,onIdentity}:TenderProps){
  };
  const beginReason=(kind:"close"|"reopen")=>{setReason("");chooseScreen(kind);};
  const beginDocument=()=>{setDocumentId("");setDocumentRole("EDITAL");chooseScreen("document");};
- const createIntent=()=>{const value=intent.current||crypto.randomUUID();intent.current=value;return value;};
+ const createIntent=()=>{const value=intent.current||a2SyntheticIntent(crypto.randomUUID());intent.current=value;return value;};
  function success(note:string){setMessage(note);setError(null);intent.current=null;setSaving(false);}
  function mutateDemo(id:string,fn:(d:TenderDetail)=>TenderDetail):TenderDetail|null{
   const previous=demoDetails.find(x=>x.item.id===id);
