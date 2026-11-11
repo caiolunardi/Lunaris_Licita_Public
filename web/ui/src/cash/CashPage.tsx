@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useMemo,useRef,useState,type FormEvent} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,CalendarClock,CheckCircle2,ChevronRight,
  CircleHelp,Clock3,Landmark,RefreshCcw,WalletCards} from "lucide-react";
 import {Badge,Button,Card,EmptyState,Notice,SectionHeading,Skeleton} from "../components/UI";
@@ -58,7 +59,7 @@ export default function CashPage({mode,identity,onIdentity,onNavigate}:PageProps
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(false);
  const [error,setError]=useState<string|null>(null),[success,setSuccess]=useState<string|null>(null);
  const [refresh,setRefresh]=useState(0),serial=useRef(0),intent=useRef<string|null>(null);
- const myIntent=()=>{if(!intent.current)intent.current=crypto.randomUUID();return intent.current;};
+ const myIntent=()=>{if(!intent.current)intent.current=a2SyntheticIntent(crypto.randomUUID());return intent.current;};
  const resetAction=()=>{intent.current=null;setError(null);setSuccess(null);};
  const get=useCallback(async<T,>(url:string):Promise<T>=>{
   const r=await fetch(url,{credentials:"same-origin",cache:"no-store",
@@ -68,7 +69,7 @@ export default function CashPage({mode,identity,onIdentity,onNavigate}:PageProps
  },[]);
  const send=useCallback(async(url:string,body:unknown,method="POST"):Promise<Record<string,unknown>>=>{
   const r=await fetch(url,{method,credentials:"same-origin",cache:"no-store",
-   headers:{"content-type":"application/json","accept":"application/json"},
+   headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
    body:JSON.stringify(body)});
   if(!r.ok)throw Object.assign(new Error("api_unavailable"),{status:r.status});
   return r.json() as Promise<Record<string,unknown>>;
