@@ -1,4 +1,5 @@
 import {useCallback,useEffect,useRef,useState,type FormEvent} from "react";
+import {a2SyntheticIntent,a2SyntheticHeaders} from "../hml/a2-synthetic";
 import {ArrowLeft,ArrowRight,Box,Building2,ClipboardList,
  Plus,RefreshCcw,Search,ShieldAlert,ShoppingCart,Truck} from "lucide-react";
 import {Badge,Button,Card,EmptyState,Notice,SectionHeading,Skeleton} from "../components/UI";
@@ -206,7 +207,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
    lines.push({parentItemId:row.id,quantidadeMil:q,valorUnitCent:price});
   }
   if(lines.length===0||lines.length>20){setError("Selecione entre 1 e 20 itens com quantidade.");return;}
-  const id=intent.current||crypto.randomUUID();intent.current=id;
+  const id=intent.current||a2SyntheticIntent(crypto.randomUUID());intent.current=id;
   const payload={intentId:id,parentId,expectedParentVersion:available.parent.versao,
    numero:numero.trim(),items:lines,...(kind==="purchases"?{fornecedorId:supplierId}:{})};
   setPending(true);setError(null);setNotice(null);
@@ -243,7 +244,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
   }
   try{
    const res=await fetch(endpoint,{method:"POST",credentials:"same-origin",cache:"no-store",
-    headers:{"content-type":"application/json","accept":"application/json"},
+    headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
     body:JSON.stringify(payload)});
    if(!res.ok)throw Object.assign(new Error("post_failed"),{status:res.status});
    const data=await res.json() as {intentId?:string;empenhoId?:string;compraId?:string;replayed?:boolean};
@@ -270,7 +271,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
   e.preventDefault();if(pending||!canWrite||!detail||kind!=="purchases")return;
   const frete=costValue(costs.frete),outros=costValue(costs.outros);
   if(frete===null||outros===null){setError("Frete e outros custos devem ser valores monetários válidos.");return;}
-  const intentId=intent.current||crypto.randomUUID();intent.current=intentId;
+  const intentId=intent.current||a2SyntheticIntent(crypto.randomUUID());intent.current=intentId;
   const payload={intentId,expectedVersion:detail.item.versao,
    freteCent:frete,outrosCustosCent:outros,condicaoPagamento:costs.condicao.trim()||null,
    dataCompra:costs.dataCompra||null,previsaoDespacho:costs.previsaoDespacho||null,
@@ -290,7 +291,7 @@ export default function CommercialPage({kind,identity,onIdentity,onNavigate}:Com
   try{
    const response=await fetch(endpoint+"/"+encodeURIComponent(detail.item.id),{
     method:"PATCH",credentials:"same-origin",cache:"no-store",
-    headers:{"content-type":"application/json","accept":"application/json"},
+    headers:{"content-type":"application/json","accept":"application/json",...a2SyntheticHeaders()},
     body:JSON.stringify(payload)});
    if(!response.ok)throw Object.assign(new Error("cost_failed"),{status:response.status});
    const result=await response.json() as {intentId?:string;replayed?:boolean};
